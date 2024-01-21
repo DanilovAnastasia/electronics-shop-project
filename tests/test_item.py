@@ -1,32 +1,37 @@
 """Здесь надо написать тесты с использованием pytest для модуля item."""
-import pytest
 from src.item import Item
+from config import PATH_TO_CSV
 
 
-@pytest.fixture
-def item_init():
-    return Item("iphone14_plus", 78000, 10)
+item1 = Item("Samsung M3", 10000.0, 5)  # тестовый экземпляр
 
 
-def test_first(item_init):
-    assert 78000 * 10 == item_init.calculate_total_price()
+def test_calculate_total_price():
+    assert item1.calculate_total_price() == 50000
 
-    Item.pay_rate = 0.8
-    item_init.apply_discount()
-    assert item_init.price == 78000 * 0.8
 
-    item = Item('Телефон', 10000, 5)
-    item.name = 'Смартфон'
-    assert item.name == 'Смартфон'
+def test_apply_discount():
+    item1.pay_rate = 0.5
+    item1.apply_discount()
+    assert item1.price == 5000
 
-    item.name = 'СуперСмартфон'
 
-    Item.instantiate_from_csv('src/items.csv')  # создание объектов из данных файла
-    assert len(Item.all) == 5  # в файле 5 записей с данными по товарам
+def test_string_to_number():
+    assert Item.string_to_number("3") == 3
+    assert Item.string_to_number("3.3") == 3
+    assert Item.string_to_number("3.8") == 3
+    assert Item.string_to_number("cat") is None
 
-    item1 = Item.all[0]
-    assert item1.name == 'Смартфон'
 
-    assert Item.string_to_number('5') == 5
-    assert Item.string_to_number('5.0') == 5
-    assert Item.string_to_number('5.5') == 5
+def test_instantiate_from_csv():
+    Item.instantiate_from_csv(PATH_TO_CSV)
+    assert len(Item.all) == 5
+    item2 = Item.all[1]
+    assert item2.name == "Ноутбук"
+    assert item2.price == 1000
+    assert item2.quantity == 3
+
+
+def test_repr():
+    assert repr(item1) == "Item('Samsung M3', 10000.0, 5)"
+    assert str(item1) == "Samsung M3"
