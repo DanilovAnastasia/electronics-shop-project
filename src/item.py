@@ -1,4 +1,8 @@
-import csv
+from csv import DictReader
+
+
+class InstantiateCSVError(Exception):
+    pass
 
 
 class Item:
@@ -22,24 +26,58 @@ class Item:
         Item.all.append(self)
 
     def __repr__(self):
-        return f"{self.__class__.__name__}('{self.name}', {self.price}, {self.quantity})"
+        """
+        Вывод имени класса, и его атрибутов
+        """
+        return f"{self.__class__.__name__}('{self.__name}', {self.price}, {self.quantity})"
 
     def __str__(self):
-        return f'{self.name}'
+        """
+        Вывод наименования товара
+        """
+        return self.__name
+
+    def __add__(self, other):
+        """
+        Сложение экземпляров класса.
+        """
+        return self.quantity + other.quantity
+
 
     @property
     def name(self):
-        """Возвращает название товара"""
         return self.__name
 
     @name.setter
-    def name(self, new_name):
-        """Устанавливает новое название товара с ограничением в 10 символов"""
-        if len(new_name) > 10:
-            print("Длина наименования товара превышает 10 символов")
-            self.__name = new_name[:10]
+    def name(self, str_name):
+        if len(str_name) <= 10:
+            self.__name = str_name
         else:
-            self.__name = new_name
+            self.__name = str_name[0:10]
+            raise Exception("длина наименования товара больше 10 символов")
+
+    @classmethod
+    def instantiate_from_csv(cls, file_path):
+        Item.all = []
+        try:
+            with open(file_path, 'r', encoding='cp1251') as csv_file:
+                items = DictReader(csv_file, delimiter=',')
+                for row in items:
+                    if len(items.fieldnames) == 3 and len(row) == 3:
+                        cls(row['name'], row['price'], row['quantity'])
+                    else:
+                        raise InstantiateCSVError('Формат файла не соответсвует')
+        except KeyError:
+            raise InstantiateCSVError("Файл поврежден")
+        except FileNotFoundError:
+            raise FileNotFoundError("Отсутствует файл items.csv")
+
+    @staticmethod
+    def string_to_number(str):
+        try:
+            return int(float(str))
+        except ValueError:
+            return "Невозможно преобразовать строку в натуральное число"
 
     def calculate_total_price(self) -> float:
         """
@@ -53,21 +91,4 @@ class Item:
         """
         Применяет установленную скидку для конкретного товара.
         """
-        self.price *= self.pay_rate
-
-    @classmethod
-    def instantiate_from_csv(cls, path):
-        cls.all.clear()
-        with open(path, newline="", encoding="windows-1251") as csvfile:
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                cls(row["name"], float(row["price"]), int(row["quantity"]))
-                # print(row)
-
-    @staticmethod
-    def string_to_number(string: str) -> int | None:
-        if string.isalpha():
-            print("Нужно было ввести число")
-            return None
-        else:
-            return int(float(string))
+        self.price = self.price * Item.pay_rate

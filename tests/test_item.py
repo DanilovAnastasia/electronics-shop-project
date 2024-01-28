@@ -1,37 +1,63 @@
 """Здесь надо написать тесты с использованием pytest для модуля item."""
+import pytest
 from src.item import Item
-from config import PATH_TO_CSV
+from src.phone import Phone
+from src.keyboard import Keyboard
 
 
-item1 = Item("Samsung M3", 10000.0, 5)  # тестовый экземпляр
+@pytest.fixture
+def item_init():
+    return Item("iphone14_plus", 78000, 10)
 
 
-def test_calculate_total_price():
-    assert item1.calculate_total_price() == 50000
+def test_first(item_init):
+    assert 78000 * 10 == item_init.calculate_total_price()
 
+    Item.pay_rate = 0.8
+    item_init.apply_discount()
+    assert item_init.price == 78000 * 0.8
 
-def test_apply_discount():
-    item1.pay_rate = 0.5
-    item1.apply_discount()
-    assert item1.price == 5000
+    item = Item('Телефон', 10000, 5)
+    item.name = 'Смартфон'
+    assert item.name == 'Смартфон'
 
+    # item.name = 'СуперСмартфон'
 
-def test_string_to_number():
-    assert Item.string_to_number("3") == 3
-    assert Item.string_to_number("3.3") == 3
-    assert Item.string_to_number("3.8") == 3
-    assert Item.string_to_number("cat") is None
+    Item.instantiate_from_csv('src/items.csv')  # создание объектов из данных файла
+    assert len(Item.all) == 5  # в файле 5 записей с данными по товарам
 
+    item1 = Item.all[0]
+    assert item1.name == 'Смартфон'
 
-def test_instantiate_from_csv():
-    Item.instantiate_from_csv(PATH_TO_CSV)
-    assert len(Item.all) == 5
-    item2 = Item.all[1]
-    assert item2.name == "Ноутбук"
-    assert item2.price == 1000
-    assert item2.quantity == 3
+    assert Item.string_to_number('5') == 5
+    assert Item.string_to_number('5.0') == 5
+    assert Item.string_to_number('5.5') == 5
 
+    item1 = Item("Смартфон", 10000, 20)
+    assert repr(item1) == "Item('Смартфон', 10000, 20)"
+    assert str(item1) == 'Смартфон'
 
-def test_repr():
-    assert repr(item1) == "Item('Samsung M3', 10000.0, 5)"
-    assert str(item1) == "Samsung M3"
+    phone1 = Phone("iPhone 14", 120_000, 5, 2)
+    assert str(phone1) == 'iPhone 14'
+    assert repr(phone1) == "Phone('iPhone 14', 120000, 5, 2)"
+    assert phone1.number_of_sim == 2
+
+    item1 = Item("Смартфон", 10000, 20)
+    assert item1 + phone1 == 25
+    assert phone1 + phone1 == 10
+
+    phone1.number_of_sim = 0
+
+    kb = Keyboard('Dark Project KD87A', 9600, 5)
+    assert str(kb) == "Dark Project KD87A"
+
+    assert str(kb.language) == "EN"
+
+    kb.change_lang()
+    assert str(kb.language) == "RU"
+
+    # Сделали EN -> RU -> EN
+    kb.change_lang()
+    assert str(kb.language) == "EN"
+
+    kb.language = 'CH'
