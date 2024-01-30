@@ -8,10 +8,6 @@ class MixinLog:
     def language(self):
         return self._language
 
-    # @language.setter
-    # def language(self, language):
-    #     self._language = language
-
     def change_lang(self):
         """
         Функция для изменения языка
@@ -24,9 +20,8 @@ class MixinLog:
 
 class Keyboard(Item, MixinLog):
 
-    def __init__(self, name, price, quantity, language='EN'):
+    def __init__(self, name, price, quantity):
         """
         Инициализация дочернего класса
         """
         super().__init__(name, price, quantity)
-        self._language = language
